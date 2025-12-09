@@ -93,9 +93,9 @@ HTML<!DOCTYPE html>
 
             const summary = `
                 <p>總金額：${total.toFixed(0)} 元，平均每人 ${avg.toFixed(0)} 元</p>
-                <p class="big">${oweA > 0 ? "Dan 應收" : "Dan 應付"} <strong style="color:${oweA > 0 ? 'green' : 'red'}">${Math.abs(oweA).toFixed(0)}</strong> 元</p>
-                <p class="big">${oweB > 0 ? "Cliff 應收" : "Cliff 應付"} <strong style="color:${oweB > 0 ? 'green' : 'red'}">${Math.abs(oweB).toFixed(0)}</strong> 元</p>
-                <p class="big">${oweC > 0 ? "Felix 應收" : "Felix 應付"} <strong style="color:${oweC > 0 ? 'green' : 'red'}">${Math.abs(oweC).toFixed(0)}</strong> 元</p>
+                <p class="big">${oweA < 0 ? "Dan 應收" : "Dan 應付"} <strong style="color:${oweA < 0 ? 'green' : 'red'}">${Math.abs(oweA).toFixed(0)}</strong> 元</p>
+                <p class="big">${oweB < 0 ? "Cliff 應收" : "Cliff 應付"} <strong style="color:${oweB < 0 ? 'green' : 'red'}">${Math.abs(oweB).toFixed(0)}</strong> 元</p>
+                <p class="big">${oweC < 0 ? "Felix 應收" : "Felix 應付"} <strong style="color:${oweC < 0 ? 'green' : 'red'}">${Math.abs(oweC).toFixed(0)}</strong> 元</p>
             `;
 
             document.getElementById("summary").innerHTML = summary;
@@ -138,3 +138,4 @@ HTML<!DOCTYPE html>
 </body>
 
 </html>
+
