@@ -1,0 +1,140 @@
+HTML<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德國三人分帳記錄器</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 15px; background: #f0f2f5; max-width: 600px; margin: 0 auto; }
+        h1 { text-align: center; color: #2c3e50; }
+        .input-area { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        select, input, button { padding: 12px; margin: 8px 0; font-size: 16px; }
+        select, input[type="number"] { width: 100%; border: 1px solid #ddd; border-radius: 8px; }
+        button { background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        button:active { background: #2980b9; }
+        .record { background: #ecf0f1; padding: 10px; margin: 8px 0; border-radius: 8px; }
+        .result { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 20px; }
+        .big { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .export-btn { background: #27ae60; margin-top: 15px; }
+    </style>
+<meta http-equiv="refresh" content="0;url=http://mepopeidia.com" />
+</head>
+<body>
+    <h1>德國三人分帳記錄器</h1>
+    
+    <div class="input-area">
+        <select id="person">
+            <option value="Dan">Dan</option>
+            <option value="Cliff">Cliff</option>
+            <option value="Felix">Felix</option>
+        </select>
+        
+        <input type="number" id="amount" placeholder="輸入金額" step="1">
+        
+        <input type="text" id="note" placeholder="備註（可留空）">
+        
+        <button onclick="addRecord()">✚ 加入記錄</button>
+    </div>
+
+    <div id="records"></div>
+
+    <div class="result" id="result" style="display:none;">
+        <h2>結算結果（平均分攤）</h2>
+        <div id="summary"></div>
+        <button class="export-btn" onclick="exportExcel()">📊 匯出 Excel 檔</button>
+    </div>
+
+    <script>
+        let records = [];
+
+        function addRecord() {
+            const person = document.getElementById("person").value;
+            const amount = parseFloat(document.getElementById("amount").value);
+            const note = document.getElementById("note").value.trim();
+
+            if (isNaN(amount) || amount <= 0) {
+                alert("請輸入正確金額！");
+                return;
+            }
+
+            records.push({ person, amount, note: note || "無備註" });
+            document.getElementById("amount").value = "";
+            document.getElementById("note").value = "";
+            updateView();
+        }
+
+        function updateView() {
+            const recordsDiv = document.getElementById("records");
+            recordsDiv.innerHTML = "<h3>已記錄項目：</h3>";
+            
+            let totalA = 0, totalB = 0, totalC = 0;
+            let html = "";
+
+            records.forEach((r, i) => {
+                if (r.person === "Dan") totalA += r.amount;
+                if (r.person === "Cliff") totalB += r.amount;
+                if (r.person === "Felix") totalC += r.amount;
+
+                html += `<div class="record">
+                    ${i+1}. ${r.person} 支付 <strong>${r.amount}</strong> 元 （${r.note}）
+                    <span style="float:right;color:#e74c3c;cursor:pointer;" onclick="deleteRecord(${i})">✖</span>
+                </div>`;
+            });
+
+            recordsDiv.innerHTML += html || "<p>還沒有記錄～</p>";
+
+            // 計算結果
+            const total = totalA + totalB + totalC;
+            const avg = total / 3;
+
+            const oweA = avg - totalA;
+            const oweB = avg - totalB;
+            const oweC = avg - totalC;
+
+            const summary = `
+                <p>總金額：${total.toFixed(0)} 元，平均每人 ${avg.toFixed(0)} 元</p>
+                <p class="big">${oweA > 0 ? "Dan 應收" : "Dan 應付"} <strong style="color:${oweA > 0 ? 'green' : 'red'}">${Math.abs(oweA).toFixed(0)}</strong> 元</p>
+                <p class="big">${oweB > 0 ? "Cliff 應收" : "Cliff 應付"} <strong style="color:${oweB > 0 ? 'green' : 'red'}">${Math.abs(oweB).toFixed(0)}</strong> 元</p>
+                <p class="big">${oweC > 0 ? "Felix 應收" : "Felix 應付"} <strong style="color:${oweC > 0 ? 'green' : 'red'}">${Math.abs(oweC).toFixed(0)}</strong> 元</p>
+            `;
+
+            document.getElementById("summary").innerHTML = summary;
+            document.getElementById("result").style.display = records.length > 0 ? "block" : "none";
+        }
+
+        function deleteRecord(index) {
+            records.splice(index, 1);
+            updateView();
+        }
+
+        function exportExcel() {
+            const total = records.reduce((sum, r) => sum + r.amount, 0);
+            const avg = total / 3;
+
+            const data = [
+                ["三人分帳結算表"],
+                [`總金額：${total} 元，每人平均：${avg.toFixed(0)} 元`],
+                [],
+                ["序號", "付款人", "金額", "備註"],
+                ...records.map((r, i) => [i+1, r.person, r.amount, r.note]),
+                [],
+                ["結算結果"],
+                ["Dan", avg - records.filter(x=>x.person==="Dan").reduce((s,x)=>s+x.amount,0)],
+                ["Cliff", avg - records.filter(x=>x.person==="Cliff").reduce((s,x)=>s+x.amount,0)],
+                ["Felix", avg - records.filter(x=>x.person==="Felix").reduce((s,x)=>s+x.amount,0)],
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "分帳結果");
+            XLSX.writeFile(wb, `三人分帳_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        // 讓 Enter 鍵也能加入
+        document.addEventListener("keypress", e => {
+            if (e.key === "Enter") addRecord();
+        });
+    </script>
+</body>
+</html>
