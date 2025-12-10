@@ -1,141 +1,225 @@
-HTML<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>德國三人分帳記錄器</title>
+    <title>德國三人分帳神器</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 15px; background: #f0f2f5; max-width: 600px; margin: 0 auto; }
-        h1 { text-align: center; color: #2c3e50; }
-        .input-area { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        select, input, button { padding: 12px; margin: 8px 0; font-size: 16px; }
-        select, input[type="number"] { width: 100%; border: 1px solid #ddd; border-radius: 8px; }
-        button { background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; }
-        button:active { background: #2980b9; }
-        .record { background: #ecf0f1; padding: 10px; margin: 8px 0; border-radius: 8px; }
-        .result { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 20px; }
-        .big { font-size: 24px; font-weight: bold; color: #2c3e50; }
-        .export-btn { background: #27ae60; margin-top: 15px; }
+        body { font-family: Arial, sans-serif; padding: 15px; background: #f0f2f5; max-width: 600px; margin: 0 auto; line-height: 1.5; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; }
+
+        /* 付款人按鈕 */
+        .payer-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+        .payer-btn { flex: 1; padding: 18px; font-size: 20px; background: #3498db; color: white; border: none; border-radius: 12px; }
+        .payer-btn.active { background: #e74c3c; transform: scale(1.05); }
+
+        /* 輸入區 */
+        .input-area { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input[type="number"] { width: 100%; padding: 14px; font-size: 18px; border: 1px solid #ddd; border-radius: 8px; margin: 10px 0; }
+        input[type="text"] { width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; margin: 10px 0; }
+
+        /* 分擔者選擇 */
+        .split-area { margin-top: 15px; display: none; }
+        .split-area.show { display: block; }
+        .split-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+        .split-btn { padding: 12px 20px; background: #ecf0f1; border-radius: 30px; font-size: 16px; }
+        .split-btn.active { background: #27ae60; color: white; }
+
+        button.main-btn { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; font-size: 18px; margin-top: 15px; }
+
+        .record { background: #ecf0f1; padding: 12px; margin: 10px 0; border-radius: 10px; position: relative; }
+        .delete { position: absolute; top: 8px; right: 8px; color: #e74c3c; font-size: 20px; cursor: pointer; }
+
+        .result { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; }
+        .big { font-size: 26px; font-weight: bold; margin: 15px 0; }
+        .export-btn { width: 100%; padding: 15px; background: #27ae60; color: white; font-size: 18px; border: none; border-radius: 12px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h1>德國三人分帳記錄器</h1>
-    
+    <h1>德國三人分帳神器</h1>
+    <p class="subtitle">Dan · Cliff · Felix 專用</p>
+
     <div class="input-area">
-        <select id="person">
-            <option value="Dan">Dan</option>
-            <option value="Cliff">Cliff</option>
-            <option value="Felix">Felix</option>
-        </select>
-        
-        <input type="number" id="amount" placeholder="輸入金額" step="1">
-        
-        <input type="text" id="note" placeholder="備註（可留空）">
-        
-        <button onclick="addRecord()">✚ 加入記錄</button>
+        <div class="payer-buttons">
+            <button class="payer-btn active" onclick="selectPayer('Dan')">Dan</button>
+            <button class="payer-btn" onclick="selectPayer('Cliff')">Cliff</button>
+            <button class="payer-btn" onclick="selectPayer('Felix')">Felix</button>
+        </div>
+
+        <input type="number" id="amount" placeholder="輸入這筆總金額（歐元）" step="0.01">
+        <input type="text" id="note" placeholder="備註 ex: 超市、晚餐、火車票（可留空）">
+
+        <div class="split-area" id="splitArea">
+            <p><strong>這筆錢要給誰分擔？</strong></p>
+            <div class="split-buttons">
+                <button class="split-btn active" onclick="toggleSplit('Dan')">Dan</button>
+                <button class="split-btn active" onclick="toggleSplit('Cliff')">Cliff</button>
+                <button class="split-btn active" onclick="toggleSplit('Felix')">Felix</button>
+                <button class="split-btn active" onclick="selectAll()">全部</button>
+            </div>
+        </div>
+
+        <button class="main-btn" onclick="addRecord()">加入這筆帳</button>
     </div>
 
     <div id="records"></div>
 
     <div class="result" id="result" style="display:none;">
-        <h2>結算結果（平均分攤）</h2>
+        <h2>最終結算</h2>
         <div id="summary"></div>
-        <button class="export-btn" onclick="exportExcel()">📊 匯出 Excel 檔</button>
+        <button class="export-btn" onclick="exportExcel()">匯出 Excel 檔</button>
     </div>
 
     <script>
+        let currentPayer = 'Dan';
+        let splitTo = { Dan: true, Cliff: true, Felix: true };
         let records = [];
 
+        function selectPayer(name) {
+            currentPayer = name;
+            document.querySelectorAll('.payer-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('amount').focus();
+        }
+
+        function toggleSplit(name) {
+            splitTo[name] = !splitTo[name];
+            const btn = event.target;
+            if (splitTo[name]) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+
+        function selectAll() {
+            splitTo = { Dan: true, Cliff: true, Felix: true };
+            document.querySelectorAll('.split-btn').forEach(b => b.classList.add('active'));
+        }
+
+        // 輸入金額後自動顯示分擔選項
+        document.getElementById('amount').addEventListener('input', function() {
+            if (this.value) {
+                document.getElementById('splitArea').classList.add('show');
+            }
+        });
+
         function addRecord() {
-            const person = document.getElementById("person").value;
-            const amount = parseFloat(document.getElementById("amount").value);
-            const note = document.getElementById("note").value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const note = document.getElementById('note').value.trim() || "無備註";
 
             if (isNaN(amount) || amount <= 0) {
                 alert("請輸入正確金額！");
                 return;
             }
 
-            records.push({ person, amount, note: note || "無備註" });
-            document.getElementById("amount").value = "";
-            document.getElementById("note").value = "";
+            const selected = Object.keys(splitTo).filter(k => splitTo[k]);
+            if (selected.length === 0) {
+                alert("請至少選擇一人分擔！");
+                return;
+            }
+
+            const perPerson = amount / selected.length;
+
+            records.push({
+                payer: currentPayer,
+                amount: amount,
+                splitTo: [...selected],
+                perPerson: perPerson,
+                note: note
+            });
+
+            // 重置表單
+            document.getElementById('amount').value = "";
+            document.getElementById('note').value = "";
+            document.getElementById('splitArea').classList.remove('show');
+            selectAll(); // 預設全部
+
+            updateView();
+        }
+
+        function deleteRecord(i) {
+            records.splice(i, 1);
             updateView();
         }
 
         function updateView() {
-            const recordsDiv = document.getElementById("records");
-            recordsDiv.innerHTML = "<h3>已記錄項目：</h3>";
-            
-            let totalA = 0, totalB = 0, totalC = 0;
-            let html = "";
+            const recDiv = document.getElementById('records');
+            recDiv.innerHTML = records.length ? "<h3>已記錄項目：</h3>" : "";
+
+            const totalPaid = { Dan: 0, Cliff: 0, Felix: 0 };
+            const totalOwe = { Dan: 0, Cliff: 0, Felix: 0 };
 
             records.forEach((r, i) => {
-                if (r.person === "Dan") totalA += r.amount;
-                if (r.person === "Cliff") totalB += r.amount;
-                if (r.person === "Felix") totalC += r.amount;
+                totalPaid[r.payer] += r.amount;
 
-                html += `<div class="record">
-                    ${i+1}. ${r.person} 支付 <strong>${r.amount}</strong> 元 （${r.note}）
-                    <span style="float:right;color:#e74c3c;cursor:pointer;" onclick="deleteRecord(${i})">✖</span>
+                r.splitTo.forEach(person => {
+                    totalOwe[person] += r.perPerson;
+                });
+
+                recDiv.innerHTML += `
+                <div class="record">
+                    ${i+1}. ${r.payer} 支付 <strong>${r.amount.toFixed(2)}</strong>€ 
+                    → 分給 ${r.splitTo.join(", ")} （各 ${r.perPerson.toFixed(2)}€）<br>
+                    <small>${r.note}</small>
+                    <span class="delete" onclick="deleteRecord(${i})">×</span>
                 </div>`;
             });
 
-            recordsDiv.innerHTML += html || "<p>還沒有記錄～</p>";
-
-            // 計算結果
-            const total = totalA + totalB + totalC;
-            const avg = total / 3;
-
-            const oweA = avg - totalA;
-            const oweB = avg - totalB;
-            const oweC = avg - totalC;
+            // 計算最終應收/應付
+            const final = {
+                Dan: totalOwe.Dan - totalPaid.Dan,
+                Cliff: totalOwe.Cliff - totalPaid.Cliff,
+                Felix: totalOwe.Felix - totalPaid.Felix
+            };
 
             const summary = `
-                <p>總金額：${total.toFixed(0)} 元，平均每人 ${avg.toFixed(0)} 元</p>
-                <p class="big">${oweA < 0 ? "Dan 應收" : "Dan 應付"} <strong style="color:${oweA < 0 ? 'green' : 'red'}">${Math.abs(oweA).toFixed(0)}</strong> 元</p>
-                <p class="big">${oweB < 0 ? "Cliff 應收" : "Cliff 應付"} <strong style="color:${oweB < 0 ? 'green' : 'red'}">${Math.abs(oweB).toFixed(0)}</strong> 元</p>
-                <p class="big">${oweC < 0 ? "Felix 應收" : "Felix 應付"} <strong style="color:${oweC < 0 ? 'green' : 'red'}">${Math.abs(oweC).toFixed(0)}</strong> 元</p>
+                <p class="big">${final.Dan >= 0 ? "Dan 應收" : "Dan 應付"} 
+                    <strong style="color:${final.Dan >= 0 ? '#27ae60' : '#e74c3c'}">
+                        ${Math.abs(final.Dan).toFixed(2)} €
+                    </strong></p>
+                <p class="big">${final.Cliff >= 0 ? "Cliff 應收" : "Cliff 應付"} 
+                    <strong style="color:${final.Cliff >= 0 ? '#27ae60' : '#e74c3c'}">
+                        ${Math.abs(final.Cliff).toFixed(2)} €
+                    </strong></p>
+                <p class="big">${final.Felix >= 0 ? "Felix 應收" : "Felix 應付"} 
+                    <strong style="color:${final.Felix >= 0 ? '#27ae60' : '#e74c3c'}">
+                        ${Math.abs(final.Felix).toFixed(2)} €
+                    </strong></p>
             `;
 
-            document.getElementById("summary").innerHTML = summary;
-            document.getElementById("result").style.display = records.length > 0 ? "block" : "none";
-        }
-
-        function deleteRecord(index) {
-            records.splice(index, 1);
-            updateView();
+            document.getElementById('summary').innerHTML = summary;
+            document.getElementById('result').style.display = records.length ? "block" : "none";
         }
 
         function exportExcel() {
-            const total = records.reduce((sum, r) => sum + r.amount, 0);
-            const avg = total / 3;
+            const totalPaid = { Dan: 0, Cliff: 0, Felix: 0 };
+            const totalOwe = { Dan: 0, Cliff: 0, Felix: 0 };
+            records.forEach(r => {
+                totalPaid[r.payer] += r.amount;
+                r.splitTo.forEach(p => totalOwe[p] += r.perPerson);
+            });
 
             const data = [
-                ["三人分帳結算表"],
-                [`總金額：${total} 元，每人平均：${avg.toFixed(0)} 元`],
+                ["德國三人分帳結算表"],
+                [`匯出時間：${new Date().toLocaleString('zh-TW')}`],
                 [],
-                ["序號", "付款人", "金額", "備註"],
-                ...records.map((r, i) => [i+1, r.person, r.amount, r.note]),
+                ["序號", "付款人", "總金額 €", "分擔給", "每人 €", "備註"],
+                ...records.map((r,i) => [i+1, r.payer, r.amount.toFixed(2), r.splitTo.join(", "), r.perPerson.toFixed(2), r.note]),
                 [],
-                ["結算結果"],
-                ["Dan", avg - records.filter(x=>x.person==="Dan").reduce((s,x)=>s+x.amount,0)],
-                ["Cliff", avg - records.filter(x=>x.person==="Cliff").reduce((s,x)=>s+x.amount,0)],
-                ["Felix", avg - records.filter(x=>x.person==="Felix").reduce((s,x)=>s+x.amount,0)],
+                ["最終結算", ""],
+                ["Dan", (totalOwe.Dan - totalPaid.Dan).toFixed(2) + " €"],
+                ["Cliff", (totalOwe.Cliff - totalPaid.Cliff).toFixed(2) + " €"],
+                ["Felix", (totalOwe.Felix - totalPaid.Felix).toFixed(2) + " €"],
             ];
 
             const ws = XLSX.utils.aoa_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "分帳結果");
-            XLSX.writeFile(wb, `三人分帳_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "德國分帳");
+            XLSX.writeFile(wb, `德國分帳_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
-        // 讓 Enter 鍵也能加入
-        document.addEventListener("keypress", e => {
-            if (e.key === "Enter") addRecord();
-        });
+        // Enter 鍵快速加入
+        document.addEventListener("keypress", e => e.key === "Enter" && addRecord());
     </script>
 </body>
-
 </html>
-
