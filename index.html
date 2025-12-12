@@ -1,225 +1,263 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>德國三人分帳神器</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 15px; background: #f0f2f5; max-width: 600px; margin: 0 auto; line-height: 1.5; }
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
-        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; }
-
-        /* 付款人按鈕 */
-        .payer-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
-        .payer-btn { flex: 1; padding: 18px; font-size: 20px; background: #3498db; color: white; border: none; border-radius: 12px; }
-        .payer-btn.active { background: #e74c3c; transform: scale(1.05); }
-
-        /* 輸入區 */
-        .input-area { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input[type="number"] { width: 100%; padding: 14px; font-size: 18px; border: 1px solid #ddd; border-radius: 8px; margin: 10px 0; }
-        input[type="text"] { width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd; border-radius: 8px; margin: 10px 0; }
-
-        /* 分擔者選擇 */
-        .split-area { margin-top: 15px; display: none; }
-        .split-area.show { display: block; }
-        .split-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
-        .split-btn { padding: 12px 20px; background: #ecf0f1; border-radius: 30px; font-size: 16px; }
-        .split-btn.active { background: #27ae60; color: white; }
-
-        button.main-btn { width: 100%; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 12px; font-size: 18px; margin-top: 15px; }
-
-        .record { background: #ecf0f1; padding: 12px; margin: 10px 0; border-radius: 10px; position: relative; }
-        .delete { position: absolute; top: 8px; right: 8px; color: #e74c3c; font-size: 20px; cursor: pointer; }
-
-        .result { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-top: 20px; }
-        .big { font-size: 26px; font-weight: bold; margin: 15px 0; }
-        .export-btn { width: 100%; padding: 15px; background: #27ae60; color: white; font-size: 18px; border: none; border-radius: 12px; margin-top: 20px; }
-    </style>
+<meta charset="UTF-8">
+<title>4 數字遊戲｜目標A & 24點</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { margin: 20px 0 10px; }
+  .container {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .modes {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1rem;
+  }
+  .mode-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+  .mode-btn.active { background: #4ecdc4 !important; }
+  .numbers {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    font-size: 2.5rem;
+  }
+  .number {
+    background: rgba(255,255,255,0.2);
+    width: 80px;
+    height: 80px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  #target {
+    font-size: 4rem;
+    text-align: center;
+    margin: 20px 0;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+  }
+  input, button {
+    padding: 12px 20px;
+    margin: 10px 5px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+  }
+  input {
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    width: calc(100% - 40px);
+    box-sizing: border-box;
+  }
+  button {
+    background: #ff6b6b;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  button:hover { background: #ff5252; transform: scale(1.05); }
+  .new-game {
+    background: #4ecdc4 !important;
+  }
+  #timer { font-size: 1.5rem; margin: 15px 0; text-align: center; }
+  #result { margin-top: 20px; font-size: 1.3rem; min-height: 50px; text-align: center; }
+  .stats {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 1.1rem;
+  }
+  .stats div {
+    margin: 10px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+  }
+</style>
 </head>
 <body>
-    <h1>德國三人分帳神器</h1>
-    <p class="subtitle">Dan · Cliff · Felix 專用</p>
-
-    <div class="input-area">
-        <div class="payer-buttons">
-            <button class="payer-btn active" onclick="selectPayer('Dan')">Dan</button>
-            <button class="payer-btn" onclick="selectPayer('Cliff')">Cliff</button>
-            <button class="payer-btn" onclick="selectPayer('Felix')">Felix</button>
-        </div>
-
-        <input type="number" id="amount" placeholder="輸入這筆總金額（歐元）" step="0.01">
-        <input type="text" id="note" placeholder="備註 ex: 超市、晚餐、火車票（可留空）">
-
-        <div class="split-area" id="splitArea">
-            <p><strong>這筆錢要給誰分擔？</strong></p>
-            <div class="split-buttons">
-                <button class="split-btn active" onclick="toggleSplit('Dan')">Dan</button>
-                <button class="split-btn active" onclick="toggleSplit('Cliff')">Cliff</button>
-                <button class="split-btn active" onclick="toggleSplit('Felix')">Felix</button>
-                <button class="split-btn active" onclick="selectAll()">全部</button>
-            </div>
-        </div>
-
-        <button class="main-btn" onclick="addRecord()">加入這筆帳</button>
+  <h1>用 4 個數字算出目標！🎯</h1>
+  <div class="container">
+    <div class="modes">
+      <button class="mode-btn active" onclick="setMode('target')">🎯 目標A模式</button>
+      <button class="mode-btn" onclick="setMode('24')">🀄 24點模式</button>
     </div>
-
-    <div id="records"></div>
-
-    <div class="result" id="result" style="display:none;">
-        <h2>最終結算</h2>
-        <div id="summary"></div>
-        <button class="export-btn" onclick="exportExcel()">匯出 Excel 檔</button>
+    
+    <div id="target">?</div>
+    
+    <div class="numbers" id="numbers"></div>
+    
+    <div id="timer">時間：0.00 秒</div>
+    
+    <input type="text" id="expression" placeholder="輸入你的算式..." autocomplete="off">
+    <br>
+    <button onclick="check()">送出答案</button>
+    <button class="new-game" onclick="newGame()">換一局</button>
+    
+    <div id="result"></div>
+    
+    <div class="stats">
+      <div>目標A模式： <span id="gamesTarget">0</span> 局　｜　平均用時：<span id="targetAvg">0.00</span> 秒</div>
+      <div>24點模式： <span id="games24">0</span> 局　｜　平均用時：<span id="avg24">0.00</span> 秒</div>
     </div>
+  </div>
 
-    <script>
-        let currentPayer = 'Dan';
-        let splitTo = { Dan: true, Cliff: true, Felix: true };
-        let records = [];
+<script>
+// 遊戲變數
+let mode = 'target';
+let target, nums, startTime, timerInterval;
+let targetTotalTime = 0, targetGameCount = 0;
+let twentyfourTotalTime = 0, twentyfourGameCount = 0;
 
-        function selectPayer(name) {
-            currentPayer = name;
-            document.querySelectorAll('.payer-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('amount').focus();
-        }
+function setMode(newMode) {
+  mode = newMode;
+  document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  newGame();
+}
 
-        function toggleSplit(name) {
-            splitTo[name] = !splitTo[name];
-            const btn = event.target;
-            if (splitTo[name]) btn.classList.add('active');
-            else btn.classList.remove('active');
-        }
+function newGame() {
+  clearInterval(timerInterval);
+  
+  // 生成 4 個 1-9 的數字（可重複）
+  nums = [];
+  for(let i = 0; i < 4; i++) {
+    nums.push(Math.floor(Math.random() * 9) + 1);
+  }
+  
+  // 設定目標
+  if(mode === '24') {
+    target = 24;
+  } else {
+    target = Math.floor(Math.random() * 900) + 100;
+  }
+  
+  document.getElementById('target').textContent = target;
+  const numbersDiv = document.getElementById('numbers');
+  numbersDiv.innerHTML = '';
+  nums.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'number';
+    div.textContent = n;
+    numbersDiv.appendChild(div);
+  });
+  
+  // 動態 placeholder
+  const placeholder = mode === '24' 
+    ? '例如：((9+8-7)×3) 或 (8×6÷(5-3))' 
+    : '例如：(8-6)×(7+3) 或 8÷(6-3)+7';
+  document.getElementById('expression').placeholder = placeholder;
+  
+  document.getElementById('expression').value = '';
+  document.getElementById('result').textContent = '';
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 10);
+}
 
-        function selectAll() {
-            splitTo = { Dan: true, Cliff: true, Felix: true };
-            document.querySelectorAll('.split-btn').forEach(b => b.classList.add('active'));
-        }
+function updateTimer() {
+  const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+  document.getElementById('timer').textContent = `時間：${elapsed} 秒`;
+}
 
-        // 輸入金額後自動顯示分擔選項
-        document.getElementById('amount').addEventListener('input', function() {
-            if (this.value) {
-                document.getElementById('splitArea').classList.add('show');
-            }
-        });
+function check() {
+  clearInterval(timerInterval);
+  const expr = document.getElementById('expression').value.trim();
+  if (!expr) {
+    document.getElementById('result').textContent = '⚠️ 請輸入你的算式！';
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 10);
+    return;
+  }
+  
+  // 檢查是否只用了這四個數字各一次
+  const used = nums.slice().sort().join('');
+  const digitsInExpr = expr.replace(/[^1-9]/g, '').split('').sort().join('');
+  if (digitsInExpr !== used) {
+    document.getElementById('result').innerHTML = `❌ 錯誤：必須<strong>恰好使用一次</strong>這四個數字：<br>${nums.join(' ')}`;
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 10);
+    return;
+  }
+  
+  try {
+    // 安全替換常見符號為 JS 可解析
+    let safeExpr = expr
+      .replace(/[××]/g, '*')  // 全形/半形乘號 → *
+      .replace(/[÷]/g, '/')   // 除號 → /
+      .replace(/−/g, '-')     // 減號 U+2212 → -
+      .replace(/＋/g, '+');   // 加號
+    
+    const calc = new Function('return ' + safeExpr);
+    const result = calc();
+    
+    if (Math.abs(result - target) < 0.0001) { // 浮點數誤差處理
+      const timeUsed = ((Date.now() - startTime) / 1000).toFixed(2);
+      document.getElementById('result').innerHTML = `✅ 正確！用時 <strong>${timeUsed}</strong> 秒 ✨`;
+      
+      // 更新統計
+      if(mode === 'target') {
+        targetTotalTime += parseFloat(timeUsed);
+        targetGameCount++;
+        document.getElementById('gamesTarget').textContent = targetGameCount;
+        document.getElementById('targetAvg').textContent = (targetTotalTime / targetGameCount).toFixed(2);
+      } else {
+        twentyfourTotalTime += parseFloat(timeUsed);
+        twentyfourGameCount++;
+        document.getElementById('games24').textContent = twentyfourGameCount;
+        document.getElementById('avg24').textContent = (twentyfourTotalTime / twentyfourGameCount).toFixed(2);
+      }
+    } else {
+      document.getElementById('result').innerHTML = `❌ 不對喔～ 結果是 ${result.toFixed(2)}，目標是 ${target}<br>再試一次！💪`;
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 10);
+    }
+  } catch (e) {
+    document.getElementById('result').textContent = '❌ 算式有誤，請檢查括號、運算子（支援 × ÷ − ＋）！';
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 10);
+  }
+}
 
-        function addRecord() {
-            const amount = parseFloat(document.getElementById('amount').value);
-            const note = document.getElementById('note').value.trim() || "無備註";
+// 按 Enter 送出
+document.getElementById('expression').addEventListener('keypress', e => {
+  if (e.key === 'Enter') check();
+});
 
-            if (isNaN(amount) || amount <= 0) {
-                alert("請輸入正確金額！");
-                return;
-            }
-
-            const selected = Object.keys(splitTo).filter(k => splitTo[k]);
-            if (selected.length === 0) {
-                alert("請至少選擇一人分擔！");
-                return;
-            }
-
-            const perPerson = amount / selected.length;
-
-            records.push({
-                payer: currentPayer,
-                amount: amount,
-                splitTo: [...selected],
-                perPerson: perPerson,
-                note: note
-            });
-
-            // 重置表單
-            document.getElementById('amount').value = "";
-            document.getElementById('note').value = "";
-            document.getElementById('splitArea').classList.remove('show');
-            selectAll(); // 預設全部
-
-            updateView();
-        }
-
-        function deleteRecord(i) {
-            records.splice(i, 1);
-            updateView();
-        }
-
-        function updateView() {
-            const recDiv = document.getElementById('records');
-            recDiv.innerHTML = records.length ? "<h3>已記錄項目：</h3>" : "";
-
-            const totalPaid = { Dan: 0, Cliff: 0, Felix: 0 };
-            const totalOwe = { Dan: 0, Cliff: 0, Felix: 0 };
-
-            records.forEach((r, i) => {
-                totalPaid[r.payer] += r.amount;
-
-                r.splitTo.forEach(person => {
-                    totalOwe[person] += r.perPerson;
-                });
-
-                recDiv.innerHTML += `
-                <div class="record">
-                    ${i+1}. ${r.payer} 支付 <strong>${r.amount.toFixed(2)}</strong>€ 
-                    → 分給 ${r.splitTo.join(", ")} （各 ${r.perPerson.toFixed(2)}€）<br>
-                    <small>${r.note}</small>
-                    <span class="delete" onclick="deleteRecord(${i})">×</span>
-                </div>`;
-            });
-
-            // 計算最終應收/應付
-            const final = {
-                Dan: totalOwe.Dan - totalPaid.Dan,
-                Cliff: totalOwe.Cliff - totalPaid.Cliff,
-                Felix: totalOwe.Felix - totalPaid.Felix
-            };
-
-            const summary = `
-                <p class="big">${final.Dan >= 0 ? "Dan 應收" : "Dan 應付"} 
-                    <strong style="color:${final.Dan >= 0 ? '#27ae60' : '#e74c3c'}">
-                        ${Math.abs(final.Dan).toFixed(2)} €
-                    </strong></p>
-                <p class="big">${final.Cliff >= 0 ? "Cliff 應收" : "Cliff 應付"} 
-                    <strong style="color:${final.Cliff >= 0 ? '#27ae60' : '#e74c3c'}">
-                        ${Math.abs(final.Cliff).toFixed(2)} €
-                    </strong></p>
-                <p class="big">${final.Felix >= 0 ? "Felix 應收" : "Felix 應付"} 
-                    <strong style="color:${final.Felix >= 0 ? '#27ae60' : '#e74c3c'}">
-                        ${Math.abs(final.Felix).toFixed(2)} €
-                    </strong></p>
-            `;
-
-            document.getElementById('summary').innerHTML = summary;
-            document.getElementById('result').style.display = records.length ? "block" : "none";
-        }
-
-        function exportExcel() {
-            const totalPaid = { Dan: 0, Cliff: 0, Felix: 0 };
-            const totalOwe = { Dan: 0, Cliff: 0, Felix: 0 };
-            records.forEach(r => {
-                totalPaid[r.payer] += r.amount;
-                r.splitTo.forEach(p => totalOwe[p] += r.perPerson);
-            });
-
-            const data = [
-                ["德國三人分帳結算表"],
-                [`匯出時間：${new Date().toLocaleString('zh-TW')}`],
-                [],
-                ["序號", "付款人", "總金額 €", "分擔給", "每人 €", "備註"],
-                ...records.map((r,i) => [i+1, r.payer, r.amount.toFixed(2), r.splitTo.join(", "), r.perPerson.toFixed(2), r.note]),
-                [],
-                ["最終結算", ""],
-                ["Dan", (totalOwe.Dan - totalPaid.Dan).toFixed(2) + " €"],
-                ["Cliff", (totalOwe.Cliff - totalPaid.Cliff).toFixed(2) + " €"],
-                ["Felix", (totalOwe.Felix - totalPaid.Felix).toFixed(2) + " €"],
-            ];
-
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "德國分帳");
-            XLSX.writeFile(wb, `德國分帳_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        // Enter 鍵快速加入
-        document.addEventListener("keypress", e => e.key === "Enter" && addRecord());
-    </script>
+// 開始第一局
+newGame();
+</script>
 </body>
 </html>
