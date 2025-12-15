@@ -187,10 +187,10 @@ function newGame() {
   timerInterval = setInterval(updateTimer, 10);
 }
 
-function updateTimer() {
+/*function updateTimer() {
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
   document.getElementById('timer').textContent = `時間：${elapsed} 秒`;
-}
+}*/
 
 function check() {
   clearInterval(timerInterval);
@@ -261,3 +261,4 @@ newGame();
 </script>
 </body>
 </html>
+
